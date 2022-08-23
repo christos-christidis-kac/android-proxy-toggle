@@ -11,6 +11,12 @@
         android:name="android.permission.WRITE_SETTINGS"
         tools:ignore="ProtectedPermissions" />
 
+    <permission
+        android:name="com.kinandcarta.create.proxytoggle.PRIVATE_PERMISSION"
+        android:protectionLevel="signature" />
+
+    <uses-permission android:name="com.kinandcarta.create.proxytoggle.PRIVATE_PERMISSION" />
+
     <application
         android:name=".App"
         android:allowBackup="true"

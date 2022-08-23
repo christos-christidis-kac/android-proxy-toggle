@@ -5,11 +5,12 @@
     <application>
         <!-- Home Screen Widget -->
         <receiver
-            android:name=".ToggleWidgetProvider"
-            android:exported="false">
+            android:name=".ToggleWidgetReceiver"
+            android:exported="false"
+            android:permission="com.kinandcarta.create.proxytoggle.PRIVATE_PERMISSION">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="android.appwidget.action.ACTION_WIDGET_RECEIVER" />
+                <action android:name="ACTION_TOGGLE_PROXY" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"

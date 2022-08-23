@@ -43,7 +43,7 @@ public object Libs {
 
     public const val viewbinding: String = "androidx.databinding:viewbinding:_"
 
-    public const val hilt_compiler: String = "androidx.hilt:hilt-compiler:_"
+    public const val glance_appwidget: String = "androidx.glance:glance-appwidget:_"
 
     public const val lifecycle_viewmodel_compose: String =
             "androidx.lifecycle:lifecycle-viewmodel-compose:_"
