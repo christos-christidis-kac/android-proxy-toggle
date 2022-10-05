@@ -36,6 +36,7 @@ class DeviceSettingsManagerImpl @Inject constructor(
             proxy.toString()
         )
         appSettings.lastUsedProxy = proxy
+        appSettings.saveProxy(proxy, System.currentTimeMillis())
         updateProxyData()
     }
 

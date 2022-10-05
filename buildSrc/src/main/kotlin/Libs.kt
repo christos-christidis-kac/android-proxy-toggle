@@ -36,14 +36,15 @@ public object Libs {
 
     public const val ui_tooling_preview: String = "androidx.compose.ui:ui-tooling-preview:_"
 
+    public const val constraintlayout_compose: String =
+            "androidx.constraintlayout:constraintlayout-compose:_"
+
     public const val core_ktx: String = "androidx.core:core-ktx:_"
 
     public const val customview_poolingcontainer: String =
             "androidx.customview:customview-poolingcontainer:_"
 
     public const val viewbinding: String = "androidx.databinding:viewbinding:_"
-
-    public const val hilt_compiler: String = "androidx.hilt:hilt-compiler:_"
 
     public const val lifecycle_viewmodel_compose: String =
             "androidx.lifecycle:lifecycle-viewmodel-compose:_"

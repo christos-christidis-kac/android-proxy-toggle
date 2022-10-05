@@ -33,7 +33,8 @@ class ProxyManagerViewModel @Inject constructor(
             darkTheme = themeSwitcher.isNightMode(),
             proxyEnabled = false,
             addressState = TextFieldState(text = getLastUsedProxy()?.address ?: ""),
-            portState = TextFieldState(text = getLastUsedProxy()?.port ?: "")
+            portState = TextFieldState(text = getLastUsedProxy()?.port ?: ""),
+            pastProxies = getPastProxies()
         )
     )
     val uiState: State<UiState> = _uiState
@@ -46,7 +47,8 @@ class ProxyManagerViewModel @Inject constructor(
                         it.copy(
                             proxyEnabled = true,
                             addressState = it.addressState.copy(text = proxy.address, error = null),
-                            portState = it.portState.copy(text = proxy.port, error = null)
+                            portState = it.portState.copy(text = proxy.port, error = null),
+                            pastProxies = getPastProxies()
                         )
                     }
                 } else {
@@ -105,6 +107,12 @@ class ProxyManagerViewModel @Inject constructor(
         }
     }
 
+    fun onProxySelected(proxy: Proxy) {
+        onAddressChanged(proxy.address)
+        onPortChanged(proxy.port)
+        updateErrors(ProxyManagerError.NoError)
+    }
+
     private fun enableProxy() {
         val address = uiState.value.addressState.text
         val port = uiState.value.portState.text
@@ -131,6 +139,7 @@ class ProxyManagerViewModel @Inject constructor(
             }
             else -> {
                 deviceSettingsManager.enableProxy(Proxy(address, port))
+                updateUiState { it.copy(pastProxies = getPastProxies()) }
             }
         }
     }
@@ -176,6 +185,10 @@ class ProxyManagerViewModel @Inject constructor(
         return if (appSettings.lastUsedProxy.isEnabled) appSettings.lastUsedProxy else null
     }
 
+    private fun getPastProxies(): List<Proxy> {
+        return appSettings.pastProxies.map { it.proxy }
+    }
+
     @VisibleForTesting
     fun getInternalUiState(): MutableState<UiState> {
         return _uiState
@@ -185,7 +198,8 @@ class ProxyManagerViewModel @Inject constructor(
         val darkTheme: Boolean,
         val proxyEnabled: Boolean,
         val addressState: TextFieldState,
-        val portState: TextFieldState
+        val portState: TextFieldState,
+        val pastProxies: List<Proxy>
     ) {
         data class TextFieldState(
             val text: String,

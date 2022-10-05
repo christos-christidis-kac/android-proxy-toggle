@@ -13,6 +13,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -26,12 +30,14 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kinandcarta.create.proxytoggle.core.model.Proxy
 import com.kinandcarta.create.proxytoggle.core.theme.BlueyGrey
@@ -54,16 +60,19 @@ fun ProxyManagerScreen(
         useVerticalLayout = useVerticalLayout,
         uiState = uiState,
         onUserInteraction = viewModel::onUserInteraction,
-        onForceFocusExecuted = viewModel::onForceFocusExecuted
+        onForceFocusExecuted = viewModel::onForceFocusExecuted,
+        onProxySelected = viewModel::onProxySelected
     )
 }
 
 @Composable
+@Suppress("LongMethod")
 fun ProxyManagerScreenContent(
     useVerticalLayout: Boolean,
     uiState: UiState,
     onUserInteraction: (UserInteraction) -> Unit,
-    onForceFocusExecuted: () -> Unit
+    onForceFocusExecuted: () -> Unit,
+    onProxySelected: (Proxy) -> Unit
 ) {
     @OptIn(ExperimentalComposeUiApi::class)
     if (uiState.proxyEnabled) {
@@ -88,7 +97,9 @@ fun ProxyManagerScreenContent(
                     buttonAndLabel = {
                         ButtonAndLabel(
                             proxyEnabled = uiState.proxyEnabled,
-                            onToggleProxy = { onUserInteraction(UserInteraction.ProxyToggled) }
+                            onToggleProxy = { onUserInteraction(UserInteraction.ProxyToggled) },
+                            pastProxies = uiState.pastProxies,
+                            onProxySelected = onProxySelected
                         )
                     },
                     addressTextField = {
@@ -186,25 +197,66 @@ fun MainLayout(
 @Composable
 fun ButtonAndLabel(
     proxyEnabled: Boolean,
-    onToggleProxy: () -> Unit
+    onToggleProxy: () -> Unit,
+    pastProxies: List<Proxy>,
+    onProxySelected: (Proxy) -> Unit
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-    ) {
+    ConstraintLayout {
+        val (button, text, dropdown) = createRefs()
+
         ProxyToggleButton(
             proxyEnabled = proxyEnabled,
-            onClick = onToggleProxy
+            onClick = onToggleProxy,
+            modifier = Modifier.constrainAs(button) {
+                top.linkTo(parent.top)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+            }
         )
-        Spacer(Modifier.height(dimensionResource(R.dimen.default_margin)))
+
+        val textMargin = dimensionResource(R.dimen.default_margin)
         Text(
             text = stringResource(
                 if (proxyEnabled) R.string.connected else R.string.disconnected
             ).uppercase(),
             color = if (proxyEnabled) MaterialTheme.colors.primary else BlueyGrey,
-            modifier = Modifier.clearAndSetSemantics {},
+            modifier = Modifier
+                .constrainAs(text) {
+                    top.linkTo(button.bottom, margin = textMargin)
+                    start.linkTo(button.start)
+                    end.linkTo(button.end)
+                }
+                .clearAndSetSemantics {},
             style = StatusLabelTextStyle
         )
+
+        if (proxyEnabled.not() && pastProxies.isNotEmpty()) {
+            var showDropDown by rememberSaveable { mutableStateOf(false) }
+            IconButton(
+                onClick = { showDropDown = showDropDown.not() },
+                modifier = Modifier.constrainAs(dropdown) {
+                    start.linkTo(text.end)
+                    top.linkTo(text.top)
+                    bottom.linkTo(text.bottom)
+                }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.arrow_drop_down),
+                    contentDescription = null,
+                    tint = BlueyGrey
+                )
+            }
+            DropdownMenu(expanded = showDropDown, onDismissRequest = { showDropDown = false }) {
+                for (proxy in pastProxies) {
+                    DropdownMenuItem(onClick = {
+                        onProxySelected(proxy)
+                        showDropDown = false
+                    }) {
+                        Text(text = proxy.toString())
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -231,6 +283,11 @@ fun ProxyManagerScreenConnectedPreviewDark() {
     ProxyManagerScreenForPreview(darkTheme = true, proxyEnabled = true)
 }
 
+private val pastProxiesForPreview = listOf(
+    Proxy("1.1.1.1", "1111"),
+    Proxy("2.2.2.2", "2222")
+)
+
 @Preview(name = "Disconnected (Light)", group = "ProxyManagerScreen")
 @Composable
 fun ProxyManagerScreenDisconnectedPreview() {
@@ -241,6 +298,18 @@ fun ProxyManagerScreenDisconnectedPreview() {
 @Composable
 fun ProxyManagerScreenDisconnectedPreviewDark() {
     ProxyManagerScreenForPreview(darkTheme = true)
+}
+
+@Preview(name = "Disconnected With Past Proxies (Light)", group = "ProxyManagerScreen")
+@Composable
+fun ProxyManagerScreenDisconnectedWithPastProxiesPreview() {
+    ProxyManagerScreenForPreview(pastProxies = pastProxiesForPreview)
+}
+
+@Preview(name = "Disconnected With Past Proxies (Dark)", group = "ProxyManagerScreen")
+@Composable
+fun ProxyManagerScreenDisconnectedWithPastProxiesPreviewDark() {
+    ProxyManagerScreenForPreview(darkTheme = true, pastProxies = pastProxiesForPreview)
 }
 
 private const val PREVIEW_LANDSCAPE_WIDTH = 800
@@ -294,11 +363,40 @@ fun ProxyManagerScreenDisconnectedPreviewDarkLandscape() {
     ProxyManagerScreenForPreview(useVerticalLayout = false, darkTheme = true)
 }
 
+@Preview(
+    name = "Disconnected With Past Proxies (Light Landscape)",
+    group = "ProxyManagerScreen Landscape",
+    device = Devices.AUTOMOTIVE_1024p,
+    widthDp = PREVIEW_LANDSCAPE_WIDTH,
+    heightDp = PREVIEW_LANDSCAPE_HEIGHT
+)
+@Composable
+fun ProxyManagerScreenDisconnectedWithPastProxiesPreviewLandscape() {
+    ProxyManagerScreenForPreview(useVerticalLayout = false, pastProxies = pastProxiesForPreview)
+}
+
+@Preview(
+    name = "Disconnected With Past Proxies (Dark Landscape)",
+    group = "ProxyManagerScreen Landscape",
+    device = Devices.AUTOMOTIVE_1024p,
+    widthDp = PREVIEW_LANDSCAPE_WIDTH,
+    heightDp = PREVIEW_LANDSCAPE_HEIGHT
+)
+@Composable
+fun ProxyManagerScreenDisconnectedWithPastProxiesPreviewDarkLandscape() {
+    ProxyManagerScreenForPreview(
+        useVerticalLayout = false,
+        darkTheme = true,
+        pastProxies = pastProxiesForPreview
+    )
+}
+
 @Composable
 private fun ProxyManagerScreenForPreview(
     useVerticalLayout: Boolean = true,
     darkTheme: Boolean = false,
-    proxyEnabled: Boolean = false
+    proxyEnabled: Boolean = false,
+    pastProxies: List<Proxy> = emptyList()
 ) {
     val someProxy = Proxy("192.168.1.1", "8888")
     ProxyManagerScreenContent(
@@ -307,9 +405,11 @@ private fun ProxyManagerScreenForPreview(
             darkTheme = darkTheme,
             proxyEnabled = proxyEnabled,
             addressState = TextFieldState(text = if (proxyEnabled) someProxy.address else ""),
-            portState = TextFieldState(text = if (proxyEnabled) someProxy.port else "")
+            portState = TextFieldState(text = if (proxyEnabled) someProxy.port else ""),
+            pastProxies = pastProxies
         ),
         onUserInteraction = {},
-        onForceFocusExecuted = {}
+        onForceFocusExecuted = {},
+        onProxySelected = {}
     )
 }

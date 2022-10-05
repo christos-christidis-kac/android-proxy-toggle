@@ -51,7 +51,7 @@ The app follows MVVM Clean Architecture principles.
 
 We currently use [Hilt](https://developer.android.com/training/dependency-injection/hilt-android) for Dependency Injection.  
 Each Activity and Fragment that use DI must be annotated with `@AndroidEntryPoint`.  
-Each ViewModel must be injected using `@ViewModelInject` in order to be provided using `by viewModels()`.
+Each ViewModel must be injected using `@HiltViewModel` in order to be provided using `by viewModels()`.
 
 ### Testing
 

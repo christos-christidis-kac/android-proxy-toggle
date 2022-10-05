@@ -34,7 +34,8 @@ import com.kinandcarta.create.proxytoggle.manager.R
 @Composable
 fun ProxyToggleButton(
     proxyEnabled: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val (stateDescription, actionDescription) = Pair(
         stringResource(if (proxyEnabled) R.string.connected else R.string.disconnected),
@@ -45,7 +46,7 @@ fun ProxyToggleButton(
     val shadowColor = if (proxyEnabled) MaterialTheme.colors.primary else BlueyGrey
     IconButton(
         onClick = onClick,
-        modifier = Modifier.semantics {
+        modifier = modifier.semantics {
             this.stateDescription = stateDescription
             onClick(label = actionDescription, action = { onClick(); true })
         }

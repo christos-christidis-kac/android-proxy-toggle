@@ -11,7 +11,6 @@ dependencies {
 
     implementation Libs.hilt_android
     kapt Libs.hilt_android_compiler
-    kapt Libs.hilt_compiler
 
     testImplementation Libs.androidx_test_ext_junit
     testImplementation Libs.hilt_android_testing
